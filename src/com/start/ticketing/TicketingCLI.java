@@ -76,6 +76,7 @@ public class TicketingCLI {
         System.out.println("Max Ticket Capacity: " + maxTicketCapacity);
 
         // Placeholder for command handling
+        // Command loop for controlling the system
         while (true) {
             System.out.println("\nEnter a command (start, stop, status, exit): ");
             String command = scanner.nextLine().trim().toLowerCase();
@@ -83,15 +84,19 @@ public class TicketingCLI {
             switch (command) {
                 case "start":
                     System.out.println("System started!");
-                    // Placeholder: Start ticket handling operations
+                    TicketPool ticketPool = new TicketPool(maxTicketCapacity); // Initialize ticket pool
+                    Thread vendorThread = new Thread(new Vendor(ticketPool, ticketReleaseRate));
+                    Thread customerThread = new Thread(new Customer(ticketPool, customerRetrievalRate));
+                    vendorThread.start(); // Start vendor thread
+                    customerThread.start(); // Start customer thread
                     break;
                 case "stop":
                     System.out.println("System stopped!");
-                    // Placeholder: Stop ticket handling operations
+                    // Placeholder: Implement proper thread interruption if needed
                     break;
                 case "status":
                     System.out.println("Displaying system status...");
-                    // Placeholder: Display current ticket pool status
+                    // Placeholder: Show current ticket pool count (e.g., ticketPool.getTicketCount())
                     break;
                 case "exit":
                     System.out.println("Exiting the system. Goodbye!");
@@ -101,5 +106,6 @@ public class TicketingCLI {
                     System.out.println("Invalid command. Please try again.");
             }
         }
+
     }
 }
