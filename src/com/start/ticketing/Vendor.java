@@ -20,9 +20,9 @@ public class Vendor implements Runnable {
                 ticketPool.addTickets(ticketId++);
                 Thread.sleep(1000 / ticketReleaseRate);
             }
-            System.out.println("Vendor has finished producing all tickets.");
+            ticketPool.log("Vendor has finished producing all tickets.");
         } catch (InterruptedException e) {
-            System.out.println("Vendor interrupted.");
+            ticketPool.log("Vendor interrupted.");
         }
     }
 }

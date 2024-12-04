@@ -72,7 +72,7 @@ public class TicketingCLI {
 
         // Command Loop
         while (true) {
-            System.out.println("\nEnter a command (start, stop, status, exit): ");
+            System.out.print("\nEnter a command (start, stop, status, exit): ");
             String command = scanner.nextLine().trim().toLowerCase();
 
             switch (command) {

@@ -28,7 +28,7 @@ public class TicketPool {
         }
         tickets.add(ticket);
         ticketsProduced++;
-        System.out.println("Ticket added: " + ticket);
+        log("Ticket added: " + ticket);
         notifyAll(); // Notify consumers that tickets are available
     }
 
@@ -40,7 +40,7 @@ public class TicketPool {
             wait(); // Wait until tickets are available
         }
         int ticket = tickets.poll();
-        System.out.println("Ticket purchased: " + ticket);
+        log("Ticket purchased: " + ticket);
         notifyAll(); // Notify producers that space is available
         return ticket;
     }
@@ -57,5 +57,12 @@ public class TicketPool {
      */
     public synchronized boolean allTicketsProduced() {
         return ticketsProduced >= totalTickets;
+    }
+
+    /**
+     * Logs a message to the console in a thread-safe manner.
+     */
+    public synchronized void log(String message) {
+        System.out.println(message);
     }
 }
