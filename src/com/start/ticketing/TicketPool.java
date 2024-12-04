@@ -12,11 +12,13 @@ public class TicketPool {
     private final int maxCapacity; // Maximum ticket pool capacity
     private int ticketsProduced = 0; // Total tickets produced
     private final int totalTickets; // Total tickets to produce
+    private final Logger logger; // Logger for real-time updates
 
     // Constructor to initialize the ticket pool
-    public TicketPool(int maxCapacity, int totalTickets) {
+    public TicketPool(int maxCapacity, int totalTickets, Logger logger) {
         this.maxCapacity = maxCapacity;
         this.totalTickets = totalTickets;
+        this.logger = logger;
     }
 
     /**
@@ -28,7 +30,7 @@ public class TicketPool {
         }
         tickets.add(ticket);
         ticketsProduced++;
-        log("Ticket added: " + ticket);
+        logger.log("Ticket added: " + ticket);
         notifyAll(); // Notify consumers that tickets are available
     }
 
@@ -40,7 +42,7 @@ public class TicketPool {
             wait(); // Wait until tickets are available
         }
         int ticket = tickets.poll();
-        log("Ticket purchased: " + ticket);
+        logger.log("Ticket purchased: " + ticket);
         notifyAll(); // Notify producers that space is available
         return ticket;
     }
@@ -57,12 +59,5 @@ public class TicketPool {
      */
     public synchronized boolean allTicketsProduced() {
         return ticketsProduced >= totalTickets;
-    }
-
-    /**
-     * Logs a message to the console in a thread-safe manner.
-     */
-    public synchronized void log(String message) {
-        System.out.println(message);
     }
 }
