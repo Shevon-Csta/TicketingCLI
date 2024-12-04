@@ -66,7 +66,13 @@ public class TicketingCLI {
             }
         }
 
-        TicketPool ticketPool = new TicketPool(maxTicketCapacity, totalTickets);
+        // Initialize Logger and TicketPool
+        Logger logger = new Logger();
+        Thread loggerThread = new Thread(logger);
+        loggerThread.start();
+
+        TicketPool ticketPool = new TicketPool(maxTicketCapacity, totalTickets, logger);
+
         Thread vendorThread = null;
         Thread customerThread = null;
 
@@ -77,7 +83,9 @@ public class TicketingCLI {
 
             switch (command) {
                 case "start":
-                    if (vendorThread == null || !vendorThread.isAlive()) {
+                    if (ticketPool.allTicketsProduced()) {
+                        System.out.println("All tickets have already been produced and sold. Cannot start again.");
+                    } else if (vendorThread == null || !vendorThread.isAlive()) {
                         System.out.println("System started!");
                         vendorThread = new Thread(new Vendor(ticketPool, ticketReleaseRate));
                         customerThread = new Thread(new Customer(ticketPool, customerRetrievalRate));
@@ -94,17 +102,22 @@ public class TicketingCLI {
                         customerThread.interrupt();
                         vendorThread = null;
                         customerThread = null;
+                    } else if (ticketPool.allTicketsProduced() && ticketPool.getTicketCount() == 0) {
+                        System.out.println("All tickets have been produced and sold. No active threads to stop.");
                     } else {
                         System.out.println("System is not running.");
                     }
                     break;
                 case "status":
                     System.out.println("Current tickets in pool: " + ticketPool.getTicketCount());
+                    System.out.println("Total tickets produced: " + totalTickets);
+                    System.out.println("Tickets sold: " + (totalTickets - ticketPool.getTicketCount()));
                     break;
                 case "exit":
                     System.out.println("Exiting the system. Goodbye!");
                     if (vendorThread != null) vendorThread.interrupt();
                     if (customerThread != null) customerThread.interrupt();
+                    logger.stop();
                     scanner.close();
                     System.exit(0);
                 default:
