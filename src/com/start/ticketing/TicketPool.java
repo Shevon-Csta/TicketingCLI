@@ -30,7 +30,7 @@ public class TicketPool {
         }
         tickets.add(ticket);
         ticketsProduced++;
-        logger.log("Ticket added: " + ticket);
+        log("Ticket added: " + ticket); // Log the addition
         notifyAll(); // Notify consumers that tickets are available
     }
 
@@ -42,7 +42,7 @@ public class TicketPool {
             wait(); // Wait until tickets are available
         }
         int ticket = tickets.poll();
-        logger.log("Ticket purchased: " + ticket);
+        log("Ticket purchased: " + ticket); // Log the purchase
         notifyAll(); // Notify producers that space is available
         return ticket;
     }
@@ -59,5 +59,12 @@ public class TicketPool {
      */
     public synchronized boolean allTicketsProduced() {
         return ticketsProduced >= totalTickets;
+    }
+
+    /**
+     * Logs a message using the Logger. Now public for access by other classes.
+     */
+    public void log(String message) {
+        logger.log(message);
     }
 }

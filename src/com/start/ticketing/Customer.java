@@ -17,7 +17,7 @@ public class Customer implements Runnable {
         try {
             while (true) {
                 ticketPool.removeTicket();
-                Thread.sleep(1000 / customerRetrievalRate);
+                Thread.sleep(1000 / customerRetrievalRate); // Wait based on retrieval rate
             }
         } catch (InterruptedException e) {
             ticketPool.log("Customer interrupted.");

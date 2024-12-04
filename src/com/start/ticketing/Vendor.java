@@ -18,7 +18,7 @@ public class Vendor implements Runnable {
             int ticketId = 1;
             while (!ticketPool.allTicketsProduced()) {
                 ticketPool.addTickets(ticketId++);
-                Thread.sleep(1000 / ticketReleaseRate);
+                Thread.sleep(1000 / ticketReleaseRate); // Wait based on release rate
             }
             ticketPool.log("Vendor has finished producing all tickets.");
         } catch (InterruptedException e) {
