@@ -3,16 +3,14 @@ package com.start.ticketing;
 import java.util.Scanner;
 
 /**
- * TicketingCLI - A Command-Line Interface for configuring and managing
+ * TicketingCLI - Command-Line Interface for configuring and managing
  * the Real-Time Event Ticketing System.
  */
 public class TicketingCLI {
 
     public static void main(String[] args) {
-        // Create a Scanner object for user input
         Scanner scanner = new Scanner(System.in);
 
-        // Variables to store system configuration
         int totalTickets = 0;
         int ticketReleaseRate = 0;
         int customerRetrievalRate = 0;
@@ -61,51 +59,57 @@ public class TicketingCLI {
             try {
                 System.out.print("Enter the maximum ticket pool capacity: ");
                 maxTicketCapacity = Integer.parseInt(scanner.nextLine());
-                if (maxTicketCapacity >= totalTickets) break;
-                else System.out.println("Max ticket capacity must be at least the total number of tickets.");
+                if (maxTicketCapacity > 0) break;
+                else System.out.println("Max ticket capacity must be a positive number.");
             } catch (NumberFormatException e) {
                 System.out.println("Invalid input. Please enter a valid number.");
             }
         }
 
-        // Display Configuration Summary
-        System.out.println("\nSystem Configuration:");
-        System.out.println("Total Tickets: " + totalTickets);
-        System.out.println("Ticket Release Rate: " + ticketReleaseRate);
-        System.out.println("Customer Retrieval Rate: " + customerRetrievalRate);
-        System.out.println("Max Ticket Capacity: " + maxTicketCapacity);
+        TicketPool ticketPool = new TicketPool(maxTicketCapacity, totalTickets);
+        Thread vendorThread = null;
+        Thread customerThread = null;
 
-        // Placeholder for command handling
-        // Command loop for controlling the system
+        // Command Loop
         while (true) {
             System.out.println("\nEnter a command (start, stop, status, exit): ");
             String command = scanner.nextLine().trim().toLowerCase();
 
             switch (command) {
                 case "start":
-                    System.out.println("System started!");
-                    TicketPool ticketPool = new TicketPool(maxTicketCapacity); // Initialize ticket pool
-                    Thread vendorThread = new Thread(new Vendor(ticketPool, ticketReleaseRate));
-                    Thread customerThread = new Thread(new Customer(ticketPool, customerRetrievalRate));
-                    vendorThread.start(); // Start vendor thread
-                    customerThread.start(); // Start customer thread
+                    if (vendorThread == null || !vendorThread.isAlive()) {
+                        System.out.println("System started!");
+                        vendorThread = new Thread(new Vendor(ticketPool, ticketReleaseRate));
+                        customerThread = new Thread(new Customer(ticketPool, customerRetrievalRate));
+                        vendorThread.start();
+                        customerThread.start();
+                    } else {
+                        System.out.println("System is already running.");
+                    }
                     break;
                 case "stop":
-                    System.out.println("System stopped!");
-                    // Placeholder: Implement proper thread interruption if needed
+                    if (vendorThread != null && vendorThread.isAlive()) {
+                        System.out.println("Stopping system...");
+                        vendorThread.interrupt();
+                        customerThread.interrupt();
+                        vendorThread = null;
+                        customerThread = null;
+                    } else {
+                        System.out.println("System is not running.");
+                    }
                     break;
                 case "status":
-                    System.out.println("Displaying system status...");
-                    // Placeholder: Show current ticket pool count (e.g., ticketPool.getTicketCount())
+                    System.out.println("Current tickets in pool: " + ticketPool.getTicketCount());
                     break;
                 case "exit":
                     System.out.println("Exiting the system. Goodbye!");
+                    if (vendorThread != null) vendorThread.interrupt();
+                    if (customerThread != null) customerThread.interrupt();
                     scanner.close();
                     System.exit(0);
                 default:
                     System.out.println("Invalid command. Please try again.");
             }
         }
-
     }
 }

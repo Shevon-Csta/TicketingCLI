@@ -4,8 +4,8 @@ package com.start.ticketing;
  * Vendor - Simulates a producer that adds tickets to the TicketPool.
  */
 public class Vendor implements Runnable {
-    private final TicketPool ticketPool; // Shared ticket pool
-    private final int ticketReleaseRate; // Tickets added per second
+    private final TicketPool ticketPool;
+    private final int ticketReleaseRate;
 
     public Vendor(TicketPool ticketPool, int ticketReleaseRate) {
         this.ticketPool = ticketPool;
@@ -15,11 +15,12 @@ public class Vendor implements Runnable {
     @Override
     public void run() {
         try {
-            int ticketId = 1; // Unique ID for tickets
-            while (true) {
-                ticketPool.addTickets(ticketId++); // Add a ticket
-                Thread.sleep(1000 / ticketReleaseRate); // Wait based on release rate
+            int ticketId = 1;
+            while (!ticketPool.allTicketsProduced()) {
+                ticketPool.addTickets(ticketId++);
+                Thread.sleep(1000 / ticketReleaseRate);
             }
+            System.out.println("Vendor has finished producing all tickets.");
         } catch (InterruptedException e) {
             System.out.println("Vendor interrupted.");
         }

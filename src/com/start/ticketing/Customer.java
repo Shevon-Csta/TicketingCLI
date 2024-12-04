@@ -4,8 +4,8 @@ package com.start.ticketing;
  * Customer - Simulates a consumer that removes tickets from the TicketPool.
  */
 public class Customer implements Runnable {
-    private final TicketPool ticketPool; // Shared ticket pool
-    private final int customerRetrievalRate; // Tickets purchased per second
+    private final TicketPool ticketPool;
+    private final int customerRetrievalRate;
 
     public Customer(TicketPool ticketPool, int customerRetrievalRate) {
         this.ticketPool = ticketPool;
@@ -16,8 +16,8 @@ public class Customer implements Runnable {
     public void run() {
         try {
             while (true) {
-                ticketPool.removeTicket(); // Purchase a ticket
-                Thread.sleep(1000 / customerRetrievalRate); // Wait based on retrieval rate
+                ticketPool.removeTicket();
+                Thread.sleep(1000 / customerRetrievalRate);
             }
         } catch (InterruptedException e) {
             System.out.println("Customer interrupted.");
