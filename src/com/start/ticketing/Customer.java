@@ -1,12 +1,9 @@
 package com.start.ticketing;
 
-/**
- * Customer - Retrieves tickets from the TicketPool.
- */
 public class Customer implements Runnable {
     private final TicketPool ticketPool;
-    private final int retrievalRate; // Tickets per second
-    private final String customerId; // Customer identifier
+    private final int retrievalRate;
+    private final String customerId;
 
     public Customer(TicketPool ticketPool, int retrievalRate, String customerId) {
         this.ticketPool = ticketPool;
@@ -18,18 +15,20 @@ public class Customer implements Runnable {
     public void run() {
         try {
             while (true) {
-                String ticket;
                 synchronized (ticketPool) {
-                    ticket = ticketPool.removeTicket(); // Retrieve ticket
-                    if (ticket == null) {
-                        break; // Exit if no more tickets are available
+                    if (ticketPool.isAllTicketsSold()) {
+                        break;
                     }
                 }
-                ticketPool.log(customerId + " purchased " + ticket); // Log after retrieving
-                Thread.sleep(1000 / retrievalRate); // Simulate retrieval rate
+                String ticket = ticketPool.removeTicket();
+                if (ticket != null) {
+                    ticketPool.log(customerId + " purchased " + ticket);
+                }
+                Thread.sleep(1000 / retrievalRate);
             }
         } catch (InterruptedException e) {
-            ticketPool.log(customerId + " interrupted.");
+            Thread.currentThread().interrupt();
+            System.err.println("Customer " + customerId + " interrupted.");
         }
     }
 }

@@ -1,14 +1,10 @@
 package com.start.ticketing;
 
-/**
- * Vendor - Produces tickets and adds them to the TicketPool.
- */
 public class Vendor implements Runnable {
     private final TicketPool ticketPool;
-    private final int releaseRate; // Tickets per second
-    private final String vendorId; // Vendor identifier
-    private final int maxTickets;  // Maximum tickets to produce
-    private int ticketsProduced = 0;
+    private final int releaseRate;
+    private final String vendorId;
+    private final int maxTickets;
 
     public Vendor(TicketPool ticketPool, int releaseRate, String vendorId, int maxTickets) {
         this.ticketPool = ticketPool;
@@ -20,15 +16,17 @@ public class Vendor implements Runnable {
     @Override
     public void run() {
         try {
-            while (ticketsProduced < maxTickets) {
-                String ticket = vendorId + "-Ticket-" + (ticketsProduced + 1);
+            ticketPool.incrementActiveProducers();
+            for (int i = 1; i <= maxTickets; i++) {
+                String ticket = vendorId + "-Ticket-" + i;
                 ticketPool.addTicket(ticket);
-                ticketsProduced++;
-                Thread.sleep(1000 / releaseRate); // Simulate production rate
+                Thread.sleep(1000 / releaseRate);
             }
-            ticketPool.log(vendorId + " has finished producing tickets.");
         } catch (InterruptedException e) {
-            ticketPool.log(vendorId + " interrupted.");
+            Thread.currentThread().interrupt();
+            System.err.println("Vendor " + vendorId + " interrupted.");
+        } finally {
+            ticketPool.decrementActiveProducers();
         }
     }
 }
