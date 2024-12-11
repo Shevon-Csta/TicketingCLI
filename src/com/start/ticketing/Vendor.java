@@ -1,10 +1,13 @@
 package com.start.ticketing;
 
+/**
+ * Vendor - Produces tickets and adds them to the TicketPool.
+ */
 public class Vendor implements Runnable {
     private final TicketPool ticketPool;
-    private final int releaseRate;
-    private final String vendorId;
-    private final int maxTickets;
+    private final int releaseRate; // Tickets per second
+    private final String vendorId; // Vendor identifier
+    private final int maxTickets;  // Maximum tickets to produce
     private int ticketsProduced = 0;
 
     public Vendor(TicketPool ticketPool, int releaseRate, String vendorId, int maxTickets) {
