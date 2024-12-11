@@ -4,22 +4,16 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
- * Logger - Handles logging in a separate thread to avoid interfering with user input.
+ * Logger - Handles real-time logging in a separate thread.
  */
 public class Logger implements Runnable {
     private final BlockingQueue<String> logQueue = new LinkedBlockingQueue<>();
     private volatile boolean running = true;
 
-    /**
-     * Adds a log message to the queue.
-     */
     public void log(String message) {
         logQueue.offer(message);
     }
 
-    /**
-     * Stops the logger.
-     */
     public void stop() {
         running = false;
     }

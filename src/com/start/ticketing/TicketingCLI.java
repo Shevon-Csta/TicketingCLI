@@ -3,8 +3,7 @@ package com.start.ticketing;
 import java.util.Scanner;
 
 /**
- * TicketingCLI - Command-Line Interface for configuring and managing
- * the Real-Time Event Ticketing System.
+ * TicketingCLI - Allows the user to configure and start the ticketing simulation.
  */
 public class TicketingCLI {
 
@@ -15,13 +14,14 @@ public class TicketingCLI {
         int ticketReleaseRate = 0;
         int customerRetrievalRate = 0;
         int maxTicketCapacity = 0;
+        int numVendors = 0;
 
-        System.out.println("Welcome to the Real-Time Event Ticketing System CLI!");
+        System.out.println("Welcome to the Real-Time Ticketing Simulation!");
 
         // Input: Total Tickets
         while (true) {
             try {
-                System.out.print("Enter the total number of tickets: ");
+                System.out.print("Enter the total number of tickets to produce: ");
                 totalTickets = Integer.parseInt(scanner.nextLine());
                 if (totalTickets > 0) break;
                 else System.out.println("Total tickets must be a positive number.");
@@ -54,75 +54,70 @@ public class TicketingCLI {
             }
         }
 
-        // Input: Max Ticket Capacity
+        // Input: Max Ticket Pool Capacity
         while (true) {
             try {
                 System.out.print("Enter the maximum ticket pool capacity: ");
                 maxTicketCapacity = Integer.parseInt(scanner.nextLine());
                 if (maxTicketCapacity > 0) break;
-                else System.out.println("Max ticket capacity must be a positive number.");
+                else System.out.println("Max ticket pool capacity must be a positive number.");
             } catch (NumberFormatException e) {
                 System.out.println("Invalid input. Please enter a valid number.");
             }
         }
 
-        // Initialize Logger and TicketPool
+        // Input: Number of Vendors
+        while (true) {
+            try {
+                System.out.print("Enter the number of vendors: ");
+                numVendors = Integer.parseInt(scanner.nextLine());
+                if (numVendors > 0) break;
+                else System.out.println("Number of vendors must be a positive number.");
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid input. Please enter a valid number.");
+            }
+        }
+
         Logger logger = new Logger();
         Thread loggerThread = new Thread(logger);
         loggerThread.start();
 
         TicketPool ticketPool = new TicketPool(maxTicketCapacity, totalTickets, logger);
 
-        Thread vendorThread = null;
-        Thread customerThread = null;
-
-        // Command Loop
-        while (true) {
-            System.out.print("\nEnter a command (start, stop, status, exit): ");
-            String command = scanner.nextLine().trim().toLowerCase();
-
-            switch (command) {
-                case "start":
-                    if (ticketPool.allTicketsProduced()) {
-                        System.out.println("All tickets have already been produced and sold. Cannot start again.");
-                    } else if (vendorThread == null || !vendorThread.isAlive()) {
-                        System.out.println("System started!");
-                        vendorThread = new Thread(new Vendor(ticketPool, ticketReleaseRate));
-                        customerThread = new Thread(new Customer(ticketPool, customerRetrievalRate));
-                        vendorThread.start();
-                        customerThread.start();
-                    } else {
-                        System.out.println("System is already running.");
-                    }
-                    break;
-                case "stop":
-                    if (vendorThread != null && vendorThread.isAlive()) {
-                        System.out.println("Stopping system...");
-                        vendorThread.interrupt();
-                        customerThread.interrupt();
-                        vendorThread = null;
-                        customerThread = null;
-                    } else if (ticketPool.allTicketsProduced() && ticketPool.getTicketCount() == 0) {
-                        System.out.println("All tickets have been produced and sold. No active threads to stop.");
-                    } else {
-                        System.out.println("System is not running.");
-                    }
-                    break;
-                case "status":
-                    System.out.println("Current tickets in pool: " + ticketPool.getTicketCount());
-                    System.out.println("Total tickets produced: " + totalTickets);
-                    System.out.println("Tickets sold: " + (totalTickets - ticketPool.getTicketCount()));
-                    break;
-                case "exit":
-                    System.out.println("Exiting the system. Goodbye!");
-                    if (vendorThread != null) vendorThread.interrupt();
-                    if (customerThread != null) customerThread.interrupt();
-                    logger.stop();
-                    scanner.close();
-                    System.exit(0);
-                default:
-                    System.out.println("Invalid command. Please try again.");
-            }
+        // Create vendor threads with unique identifiers
+        Thread[] vendorThreads = new Thread[numVendors];
+        for (int i = 0; i < numVendors; i++) {
+            String vendorId = String.valueOf((char) ('A' + i)); // Assign IDs "A", "B", "C", etc.
+            vendorThreads[i] = new Thread(new Vendor(ticketPool, ticketReleaseRate, vendorId));
         }
+
+        // Create customer thread
+        Thread customerThread = new Thread(new Customer(ticketPool, customerRetrievalRate));
+
+        // Wait for user to start the process
+        System.out.println("Press ENTER to start the ticketing simulation...");
+        scanner.nextLine();
+
+        // Start all threads
+        System.out.println("Starting simulation...");
+        for (Thread vendorThread : vendorThreads) {
+            vendorThread.start();
+        }
+        customerThread.start();
+
+        // Wait for threads to complete
+        try {
+            for (Thread vendorThread : vendorThreads) {
+                vendorThread.join();
+            }
+            customerThread.join();
+        } catch (InterruptedException e) {
+            System.err.println("Simulation interrupted.");
+        }
+
+        // Stop the logger
+        logger.stop();
+        System.out.println("Simulation complete. Goodbye!");
+        scanner.close();
     }
 }
