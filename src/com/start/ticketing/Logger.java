@@ -3,9 +3,6 @@ package com.start.ticketing;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-/**
- * Logger - Handles real-time logging in a separate thread.
- */
 public class Logger implements Runnable {
     private final BlockingQueue<String> logQueue = new LinkedBlockingQueue<>();
     private volatile boolean running = true;

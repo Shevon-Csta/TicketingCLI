@@ -1,32 +1,31 @@
 package com.start.ticketing;
 
-/**
- * Vendor - Adds tickets to the TicketPool with unique identifiers.
- */
 public class Vendor implements Runnable {
     private final TicketPool ticketPool;
-    private final int ticketReleaseRate; // Tickets per second
-    private final String vendorId; // Identifier for the vendor (e.g., "A", "B")
+    private final int releaseRate;
+    private final String vendorId;
+    private final int maxTickets;
+    private int ticketsProduced = 0;
 
-    public Vendor(TicketPool ticketPool, int ticketReleaseRate, String vendorId) {
+    public Vendor(TicketPool ticketPool, int releaseRate, String vendorId, int maxTickets) {
         this.ticketPool = ticketPool;
-        this.ticketReleaseRate = ticketReleaseRate;
+        this.releaseRate = releaseRate;
         this.vendorId = vendorId;
+        this.maxTickets = maxTickets;
     }
 
     @Override
     public void run() {
         try {
-            int ticketNum = 1;
-            while (!ticketPool.allTicketsProduced()) {
-                String ticket = ticketNum + "." + vendorId; // e.g., "1.A"
-                ticketPool.addTickets(ticket);
-                ticketNum++;
-                Thread.sleep(1000 / ticketReleaseRate); // Wait based on release rate
+            while (ticketsProduced < maxTickets) {
+                String ticket = vendorId + "-Ticket-" + (ticketsProduced + 1);
+                ticketPool.addTicket(ticket);
+                ticketsProduced++;
+                Thread.sleep(1000 / releaseRate); // Simulate production rate
             }
-            ticketPool.log("Vendor " + vendorId + " has finished producing all tickets.");
+            ticketPool.log(vendorId + " has finished producing tickets.");
         } catch (InterruptedException e) {
-            ticketPool.log("Vendor " + vendorId + " interrupted.");
+            ticketPool.log(vendorId + " interrupted.");
         }
     }
 }

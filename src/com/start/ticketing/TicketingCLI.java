@@ -2,120 +2,67 @@ package com.start.ticketing;
 
 import java.util.Scanner;
 
-/**
- * TicketingCLI - Allows the user to configure and start the ticketing simulation.
- */
 public class TicketingCLI {
-
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
 
-        int totalTickets = 0;
-        int ticketReleaseRate = 0;
-        int customerRetrievalRate = 0;
-        int maxTicketCapacity = 0;
-        int numVendors = 0;
-
+        // User Inputs
         System.out.println("Welcome to the Real-Time Ticketing Simulation!");
+        System.out.print("Enter number of vendors: ");
+        int numVendors = scanner.nextInt();
+        System.out.print("Enter number of customers: ");
+        int numCustomers = scanner.nextInt();
+        System.out.print("Enter ticket release rate (tickets per second): ");
+        int releaseRate = scanner.nextInt();
+        System.out.print("Enter ticket retrieval rate (tickets per second): ");
+        int retrievalRate = scanner.nextInt();
+        System.out.print("Enter maximum ticket pool size: ");
+        int maxPoolSize = scanner.nextInt();
+        System.out.print("Enter maximum tickets per vendor: ");
+        int maxTicketsPerVendor = scanner.nextInt();
 
-        // Input: Total Tickets
-        while (true) {
-            try {
-                System.out.print("Enter the total number of tickets to produce: ");
-                totalTickets = Integer.parseInt(scanner.nextLine());
-                if (totalTickets > 0) break;
-                else System.out.println("Total tickets must be a positive number.");
-            } catch (NumberFormatException e) {
-                System.out.println("Invalid input. Please enter a valid number.");
-            }
-        }
-
-        // Input: Ticket Release Rate
-        while (true) {
-            try {
-                System.out.print("Enter the ticket release rate (tickets per second): ");
-                ticketReleaseRate = Integer.parseInt(scanner.nextLine());
-                if (ticketReleaseRate > 0) break;
-                else System.out.println("Ticket release rate must be a positive number.");
-            } catch (NumberFormatException e) {
-                System.out.println("Invalid input. Please enter a valid number.");
-            }
-        }
-
-        // Input: Customer Retrieval Rate
-        while (true) {
-            try {
-                System.out.print("Enter the customer retrieval rate (tickets per second): ");
-                customerRetrievalRate = Integer.parseInt(scanner.nextLine());
-                if (customerRetrievalRate > 0) break;
-                else System.out.println("Customer retrieval rate must be a positive number.");
-            } catch (NumberFormatException e) {
-                System.out.println("Invalid input. Please enter a valid number.");
-            }
-        }
-
-        // Input: Max Ticket Pool Capacity
-        while (true) {
-            try {
-                System.out.print("Enter the maximum ticket pool capacity: ");
-                maxTicketCapacity = Integer.parseInt(scanner.nextLine());
-                if (maxTicketCapacity > 0) break;
-                else System.out.println("Max ticket pool capacity must be a positive number.");
-            } catch (NumberFormatException e) {
-                System.out.println("Invalid input. Please enter a valid number.");
-            }
-        }
-
-        // Input: Number of Vendors
-        while (true) {
-            try {
-                System.out.print("Enter the number of vendors: ");
-                numVendors = Integer.parseInt(scanner.nextLine());
-                if (numVendors > 0) break;
-                else System.out.println("Number of vendors must be a positive number.");
-            } catch (NumberFormatException e) {
-                System.out.println("Invalid input. Please enter a valid number.");
-            }
-        }
-
+        // Initialize Logger and TicketPool
         Logger logger = new Logger();
         Thread loggerThread = new Thread(logger);
         loggerThread.start();
 
-        TicketPool ticketPool = new TicketPool(maxTicketCapacity, totalTickets, logger);
+        TicketPool ticketPool = new TicketPool(maxPoolSize, logger);
 
-        // Create vendor threads with unique identifiers
+        // Create Vendor Threads
         Thread[] vendorThreads = new Thread[numVendors];
         for (int i = 0; i < numVendors; i++) {
-            String vendorId = String.valueOf((char) ('A' + i)); // Assign IDs "A", "B", "C", etc.
-            vendorThreads[i] = new Thread(new Vendor(ticketPool, ticketReleaseRate, vendorId));
+            String vendorId = "Vendor-" + (i + 1);
+            vendorThreads[i] = new Thread(new Vendor(ticketPool, releaseRate, vendorId, maxTicketsPerVendor));
         }
 
-        // Create customer thread
-        Thread customerThread = new Thread(new Customer(ticketPool, customerRetrievalRate));
+        // Create Customer Threads
+        Thread[] customerThreads = new Thread[numCustomers];
+        for (int i = 0; i < numCustomers; i++) {
+            String customerId = "Customer-" + (i + 1);
+            customerThreads[i] = new Thread(new Customer(ticketPool, retrievalRate, customerId));
+        }
 
-        // Wait for user to start the process
-        System.out.println("Press ENTER to start the ticketing simulation...");
-        scanner.nextLine();
-
-        // Start all threads
-        System.out.println("Starting simulation...");
+        // Start All Threads
         for (Thread vendorThread : vendorThreads) {
             vendorThread.start();
         }
-        customerThread.start();
+        for (Thread customerThread : customerThreads) {
+            customerThread.start();
+        }
 
-        // Wait for threads to complete
+        // Wait for All Threads to Finish
         try {
             for (Thread vendorThread : vendorThreads) {
                 vendorThread.join();
             }
-            customerThread.join();
+            for (Thread customerThread : customerThreads) {
+                customerThread.join();
+            }
         } catch (InterruptedException e) {
             System.err.println("Simulation interrupted.");
         }
 
-        // Stop the logger
+        // Stop Logger
         logger.stop();
         System.out.println("Simulation complete. Goodbye!");
         scanner.close();
